@@ -1,0 +1,64 @@
+# Data Generation Configuration
+
+years: [2022, 2023, 2024]
+months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+num_policies_per_month: 5000
+
+products:
+  - name: "Standard Care"
+    weight: 0.6
+    baseline_freq: 0.05
+  - name: "Senior Care Gold"
+    weight: 0.2
+    baseline_freq: 0.12 # Higher baseline
+  - name: "Family Plus"
+    weight: 0.2
+    baseline_freq: 0.06
+
+age_groups:
+  - name: "18-35"
+    weight: 0.3
+    multiplier: 0.8
+  - name: "36-59"
+    weight: 0.5
+    multiplier: 1.0
+  - name: "60+"
+    weight: 0.2
+    multiplier: 1.5 # Higher baseline
+
+regions:
+  - name: "North"
+    weight: 0.25
+    multiplier: 1.1 # Slightly higher baseline
+  - name: "South"
+    weight: 0.25
+    multiplier: 0.95
+  - name: "East"
+    weight: 0.25
+    multiplier: 1.0
+  - name: "West"
+    weight: 0.25
+    multiplier: 0.95
+
+seasons:
+  Winter: [12, 1, 2] # Higher respiratory claims
+  Spring: [3, 4, 5]
+  Summer: [6, 7, 8]
+  Fall: [9, 10, 11]
+
+disease_categories:
+  - "Cardiac"
+  - "Respiratory"
+  - "Cancer"
+  - "Orthopedic"
+  - "General"
+
+# Injected Drift (2024)
+# Cancer claims increase for North Region + Age 60+ + Senior Care Gold
+drift_rules:
+  year: 2024
+  product: "Senior Care Gold"
+  age_group: "60+"
+  region: "North"
+  disease_category: "Cancer"
+  drift_multiplier: 3.5 # Significant drift for this specific segment

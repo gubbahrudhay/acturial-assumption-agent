@@ -1,0 +1,46 @@
+# Business Events Configuration
+# These events are processed by the Business Event Engine to inject gradual drift over time.
+# Effect size acts as a multiplier on the logit (or a direct additive term to the logit).
+
+events:
+  - event_name: "Northern Oncology Growth"
+    enabled: true
+    start_month: 3
+    duration: 10
+    progression_curve: "linear" # linear, exponential, or step
+    affected_population:
+      region: "North"
+      age_group: "60+"
+    effect_size: 1.2 # Additive shift to logit for Cancer claims
+    target_disease: "Cancer"
+
+  - event_name: "Severe Winter Respiratory Strain"
+    enabled: true
+    start_month: 1
+    duration: 2
+    progression_curve: "exponential"
+    affected_population:
+      product: "Family Plus"
+    effect_size: 0.8
+    target_disease: "Respiratory"
+
+  - event_name: "Southern Orthopedic Shift"
+    enabled: true
+    start_month: 6
+    duration: 6
+    progression_curve: "linear"
+    affected_population:
+      region: "South"
+      age_group: "18-35"
+    effect_size: 1.5
+    target_disease: "Orthopedic"
+
+  - event_name: "General Cardiac Increase"
+    enabled: true
+    start_month: 4
+    duration: 8
+    progression_curve: "step"
+    affected_population:
+      age_group: "36-59"
+    effect_size: 0.9
+    target_disease: "Cardiac"

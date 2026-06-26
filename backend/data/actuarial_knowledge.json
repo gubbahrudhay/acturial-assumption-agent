@@ -1,0 +1,61 @@
+{
+  "business_events": [
+    {
+      "pattern": {
+        "Claim_Category": "Respiratory",
+        "Region": "East"
+      },
+      "event_name": "Regional Air Quality Deterioration",
+      "description": "A sudden increase in respiratory claims in the East region is historically correlated with severe seasonal air quality drops or industrial smog events.",
+      "risk_level": "High",
+      "recommended_actions": [
+        "Issue localized health advisories to policyholders.",
+        "Review exposure concentration in affected postal codes.",
+        "Increase short-term reserving for acute respiratory treatments."
+      ]
+    },
+    {
+      "pattern": {
+        "Claim_Category": "Cancer",
+        "Age_Group": "Senior"
+      },
+      "event_name": "Delayed Diagnostic Catch-up",
+      "description": "Anomalous spikes in senior cancer claims often follow periods of deferred preventative care (e.g., missed screenings during prior years), resulting in later-stage, higher-cost diagnoses.",
+      "risk_level": "Critical",
+      "recommended_actions": [
+        "Launch proactive screening campaigns for at-risk demographics.",
+        "Adjust long-term mortality and morbidity assumptions.",
+        "Engage with oncology networks for cost-containment programs."
+      ]
+    },
+    {
+      "pattern": {
+        "Claim_Category": "Orthopedic",
+        "Age_Group": "Young Adult",
+        "Region": "South"
+      },
+      "event_name": "Recreational / Sports Injury Surge",
+      "description": "Increases in orthopedic claims among young adults in the South correlate strongly with the expansion of extreme sports facilities or return-to-sport trends post-winter.",
+      "risk_level": "Medium",
+      "recommended_actions": [
+        "Review sports-related exclusion clauses in policy wordings.",
+        "Partner with physiotherapy clinics for preferred provider rates.",
+        "Monitor trend for seasonality vs structural shift."
+      ]
+    },
+    {
+      "pattern": {
+        "Claim_Category": "Cardiac",
+        "Age_Group": "Middle-Aged"
+      },
+      "event_name": "Lifestyle & Stress Related Cardiac Events",
+      "description": "A rise in middle-aged cardiac claims suggests a systemic shift in population health, often linked to economic stress factors or sedentary lifestyle shifts.",
+      "risk_level": "High",
+      "recommended_actions": [
+        "Introduce wellness and cardiovascular health programs.",
+        "Re-evaluate underwriting criteria for hypertension.",
+        "Analyze correlation with recent economic downturns."
+      ]
+    }
+  ]
+}
