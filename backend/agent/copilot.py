@@ -17,7 +17,7 @@ def chat_with_copilot(state: Dict[str, Any], user_message: str) -> Dict[str, Any
             llm = ChatOpenAI(model="gpt-4o", api_key=api_key)
         else:
             from langchain_google_genai import ChatGoogleGenerativeAI
-            llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", google_api_key=api_key, max_retries=0)
+            llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=api_key, max_retries=0)
     except Exception as e:
         return {"error": f"Failed to initialize LLM: {str(e)}"}
         
@@ -34,6 +34,7 @@ def chat_with_copilot(state: Dict[str, Any], user_message: str) -> Dict[str, Any
     You are an AI Actuarial Copilot assisting an actuary.
     You have deep knowledge of the current investigation state. Use this data to answer questions directly, accurately, and concisely.
     Do NOT hallucinate data outside of what is provided.
+    IMPORTANT: Respond in plain text ONLY. Do NOT use any Markdown formatting like **bold** or *italics*.
     
     Drift Metrics: {json.dumps(metrics, indent=2)}
     

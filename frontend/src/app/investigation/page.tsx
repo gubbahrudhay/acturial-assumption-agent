@@ -5,7 +5,7 @@ import axios from "axios"
 import { motion, AnimatePresence } from "framer-motion"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { GitMerge, Activity, BrainCircuit, BarChart, BarChart3, FileText, MessageSquare, ShieldAlert, Search, Play, Pause, SkipBack, SkipForward, Menu, X } from "lucide-react"
+import { GitMerge, Activity, BrainCircuit, BarChart, BarChart3, FileText, MessageSquare, ShieldAlert, Search, Play, Pause, SkipBack, SkipForward, Menu, X, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { useStore } from "@/store/store"
 import {
