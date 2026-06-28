@@ -7,8 +7,14 @@ class InvestigationState(TypedDict):
     """
     investigation_id: str
     df_path: str
-    dataset_metadata: Dict[str, Any]
     api_key: str
+    
+    # New Milestone 4 Fields
+    engine_context: Dict[str, Any]
+    execution_context: Dict[str, Any]
+    data_readiness_report: Dict[str, Any]
+    data_dictionary: Dict[str, Any]
+    data_readiness_score: int
     
     # Layer 2 Outputs
     drift_metrics: Dict[str, Any]

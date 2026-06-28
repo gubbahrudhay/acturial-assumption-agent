@@ -1,0 +1,35 @@
+name: severity
+version: 1
+
+required_columns:
+  - Policy_ID
+  - Product
+  - Region
+  - Age
+  - Claim_Amount
+  - Expected_Severity
+  - Claim_Date
+
+optional_columns:
+  - Hospital_Code
+  - Diagnosis_Code
+
+column_types:
+  Policy_ID: string
+  Product: string
+  Region: string
+  Age: integer
+  Claim_Amount: float
+  Expected_Severity: float
+  Claim_Date: date
+  Hospital_Code: string
+  Diagnosis_Code: string
+
+numeric_constraints:
+  Claim_Amount:
+    min: 0
+  Expected_Severity:
+    min: 0
+  Age:
+    min: 0
+    max: 120

@@ -1,4 +1,6 @@
 import "./globals.css"
+import { GeistSans } from 'geist/font/sans';
+import { GeistMono } from 'geist/font/mono';
 import Link from "next/link"
 import { Activity, LayoutDashboard, SearchCode, FileText } from "lucide-react"
 import DatasetSelector from "@/components/DatasetSelector"
@@ -12,7 +14,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-white text-[#222222] antialiased selection:bg-[#ff385c]/30 font-sans">
+      <body className={`bg-white text-[#222222] antialiased selection:bg-[#ff385c]/30 font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <div className="flex min-h-screen flex-col">
           <header className="sticky top-0 z-50 w-full h-[80px] bg-white border-b border-[#dddddd] flex items-center">
             <div className="container flex items-center justify-between px-6 md:px-10 mx-auto w-full">
@@ -27,8 +29,14 @@ export default function RootLayout({
               
               {/* Center Product Tabs */}
               <nav className="hidden md:flex items-center space-x-8 text-[16px] font-semibold text-[#6a6a6a]">
+                <Link href="/data-readiness" className="transition-colors hover:text-[#222222] flex items-center gap-2">
+                  Data Readiness
+                </Link>
                 <Link href="/investigation" className="transition-colors hover:text-[#222222] flex items-center gap-2">
-                  Investigation Workspace
+                  Investigation
+                </Link>
+                <Link href="/monitoring" className="transition-colors hover:text-[#222222] flex items-center gap-2">
+                  Monitoring
                 </Link>
               </nav>
 

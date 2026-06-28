@@ -61,6 +61,19 @@ export default function InvestigationWorkspace() {
     setLoading(true)
     try {
       const apiKey = localStorage.getItem("gemini_api_key") || ""
+      
+      // Milestone 4: Data Readiness Pre-Check
+      const detectRes = await axios.post("http://localhost:8000/api/contracts/detect", { dataset: dataset })
+      const analyzeRes = await axios.post("http://localhost:8000/api/data-readiness/analyze", {
+        dataset: dataset,
+        engine_context: detectRes.data.engine_context
+      })
+      
+      if (!analyzeRes.data.dataset_ready) {
+        window.location.href = '/data-readiness'
+        return
+      }
+      
       const res = await axios.post("http://localhost:8000/api/agent/run", { 
         api_key: apiKey,
         dataset: dataset 

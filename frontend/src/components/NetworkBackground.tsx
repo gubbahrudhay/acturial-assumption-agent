@@ -1,16 +1,28 @@
 "use client"
 
-import { useRef, useMemo } from 'react'
+import { useRef, useMemo, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 
-const PARTICLE_COUNT = 150
+const PARTICLE_COUNT = 200
 const MAX_DISTANCE = 2.0
 
 const Particles = () => {
   const pointsRef = useRef<THREE.Points>(null)
   const linesRef = useRef<THREE.LineSegments>(null)
-  const { mouse, viewport } = useThree()
+  const { viewport } = useThree()
+  
+  const globalMouse = useRef({ x: 0, y: 0 })
+  
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      globalMouse.current.x = (e.clientX / window.innerWidth) * 2 - 1
+      globalMouse.current.y = -(e.clientY / window.innerHeight) * 2 + 1
+    }
+    window.addEventListener('mousemove', handleMouseMove)
+    return () => window.removeEventListener('mousemove', handleMouseMove)
+  }, [])
   
   // Initialize particle positions and velocities
   const [positions, velocities] = useMemo(() => {
@@ -38,8 +50,8 @@ const Particles = () => {
     const positions = pointsRef.current.geometry.attributes.position.array as Float32Array
     
     // Convert mouse to world coordinates roughly
-    const mouseX = (mouse.x * viewport.width) / 2
-    const mouseY = (mouse.y * viewport.height) / 2
+    const mouseX = (globalMouse.current.x * viewport.width) / 2
+    const mouseY = (globalMouse.current.y * viewport.height) / 2
     
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       positions[i * 3] += velocities[i].x
@@ -68,7 +80,7 @@ const Particles = () => {
       if (distToMouse < 3.0) {
          linePositions.push(x1, y1, z1)
          linePositions.push(mouseX, mouseY, 0)
-         lineColors.push(1, 0.22, 0.36, 1 - (distToMouse/3.0)) // #ff385c
+         lineColors.push(1, 0.22, 0.36, 1 - (distToMouse/3.0)) // #bc0627ff
          lineColors.push(1, 0.22, 0.36, 1 - (distToMouse/3.0))
       }
       
@@ -98,9 +110,9 @@ const Particles = () => {
     <>
       <points ref={pointsRef}>
         <bufferGeometry>
-          <bufferAttribute attach="attributes-position" array={positions} itemSize={3} count={PARTICLE_COUNT} />
+          <bufferAttribute attach="attributes-position" array={positions} itemSize={3} count={PARTICLE_COUNT} args={[]} />
         </bufferGeometry>
-        <pointsMaterial size={0.05} color="#aaaaaa" transparent opacity={0.6} sizeAttenuation />
+        <pointsMaterial size={0.05} color="#888888" transparent opacity={0.8} sizeAttenuation />
       </points>
       <lineSegments ref={linesRef}>
         <bufferGeometry />
@@ -112,7 +124,7 @@ const Particles = () => {
 
 export default function NetworkBackground() {
   return (
-    <div className="absolute inset-0 z-0 opacity-40 pointer-events-none">
+    <div className="fixed inset-0 z-0 opacity-80 pointer-events-none">
       <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
         <Particles />
       </Canvas>

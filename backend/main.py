@@ -16,6 +16,12 @@ from database import get_db, InvestigationRun
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
+# Milestone 4 Imports
+from contracts.contract_detector import ContractDetector
+from contracts.engine_compatibility import EngineCompatibility
+from contracts.engine_context import EngineContextBuilder
+from quality.validator import DataReadinessValidator
+
 app = FastAPI(title="Assumption Monitoring Agent API")
 
 # Add CORS middleware to allow Next.js frontend to communicate
@@ -120,6 +126,57 @@ async def investigate_drift():
         
     tree = recursive_investigate(df_latest, max_depth=3)
     return {"status": "Investigation complete", "drift_metrics": metrics, "tree": tree}
+
+@app.post("/api/contracts/detect")
+async def detect_contract(request: Request):
+    data = await request.json()
+    dataset_name = data.get("dataset", ACTIVE_DATASET_NAME)
+    import os
+    base_path = os.path.join(os.path.dirname(__file__), "data")
+    df_path = os.path.join(base_path, dataset_name)
+    if not os.path.exists(df_path):
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    df = pd.read_csv(df_path)
+    
+    # 1. Detect Contract
+    contract_type = ContractDetector.detect(df)
+    
+    # 2. Assess Engine Compatibility
+    compatibility = EngineCompatibility.assess(df, contract_type)
+    
+    # 3. Build Engine Context
+    engine_context = EngineContextBuilder.build(
+        dataset_type=contract_type,
+        schema_version="1",
+        recommended_engine=compatibility.get("recommended_engine", "Unknown")
+    )
+    
+    return {
+        "contract_type": contract_type,
+        "compatibility": compatibility,
+        "engine_context": engine_context
+    }
+
+@app.post("/api/data-readiness/analyze")
+async def analyze_readiness(request: Request):
+    data = await request.json()
+    dataset_name = data.get("dataset", ACTIVE_DATASET_NAME)
+    engine_context = data.get("engine_context")
+    if not engine_context:
+        raise HTTPException(status_code=400, detail="engine_context is required")
+        
+    import os
+    base_path = os.path.join(os.path.dirname(__file__), "data")
+    df_path = os.path.join(base_path, dataset_name)
+    if not os.path.exists(df_path):
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    df = pd.read_csv(df_path)
+    
+    validator = DataReadinessValidator(engine_context)
+    report = validator.validate(df)
+    return report
 
 @app.post("/api/agent/run")
 async def run_agent(request: Request):

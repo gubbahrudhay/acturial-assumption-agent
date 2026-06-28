@@ -1,0 +1,51 @@
+name: frequency
+version: 1
+
+required_columns:
+  - Policy_ID
+  - Product
+  - Region
+  - Age
+  - Premium
+  - Exposure
+  - Claim
+  - Expected_Frequency
+  - Policy_Start_Date
+  - Policy_End_Date
+
+optional_columns:
+  - Distribution_Channel
+  - Gender
+
+column_types:
+  Policy_ID: string
+  Product: string
+  Region: string
+  Age: integer
+  Premium: float
+  Exposure: float
+  Claim: integer
+  Expected_Frequency: float
+  Policy_Start_Date: date
+  Policy_End_Date: date
+  Distribution_Channel: string
+  Gender: string
+
+numeric_constraints:
+  Premium:
+    min: 0
+  Exposure:
+    min: 0
+  Claim:
+    min: 0
+    max: 1
+  Expected_Frequency:
+    min: 0
+    max: 1
+  Age:
+    min: 0
+    max: 120
+
+date_constraints:
+  Policy_End_Date:
+    after: Policy_Start_Date
