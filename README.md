@@ -1,75 +1,552 @@
-# Actuarial Assumption Monitoring Agent
+# Actuarial Intelligence Platform
 
-The **Actuarial Assumption Monitoring Agent** is a full-stack, enterprise-grade AI workspace designed for actuaries. It automates the complex process of detecting statistical drift in insurance portfolios, isolating root causes, calculating business impact, and generating deterministic explainable reports.
+An enterprise-grade AI-powered actuarial investigation platform that automatically detects, explains, and quantifies deterioration in insurance portfolios using statistical analytics, deterministic actuarial models, and AI-assisted decision support.
 
-Built with Python, FastAPI, LangGraph, React, Next.js, and SQLite, the application acts as an intelligent co-pilot for actuarial investigations, prioritizing mathematical transparency, auditability, and deterministic rules over LLM hallucinations.
+The platform combines actuarial science, machine learning readiness validation, statistical surveillance, and LLM-assisted investigation into a single production-ready workspace.
 
-## Key Features
+---
 
-- **Automated Drift Detection:** Ingests insurance datasets, automatically calculates expected baselines vs. actuals (e.g., A/E ratios), and flags statistically significant variance using Z-Scores.
-- **Explainable AI Investigation Engine:** Uses a deterministic rules engine and knowledge base (`actuarial_knowledge.json`) to trace macro-level portfolio drift down to the specific micro-segments causing the issue (e.g., Product Type -> Geographic Region).
-- **Dual Confidence Metrics:** Displays independent scores for Mathematical Materiality (exposure/variance) and Logic Explainability.
-- **Deep Evidence Explorer:** Click into any step of the AI's "Planner Notebook" to see the exact statistical math and rules engine logic that drove the decision.
-- **Scenario Lab (What-If Analysis):** Instantly simulate structural portfolio adjustments (e.g., "Shift Expected Frequency +10%") to recalculate financial impacts without rerunning the entire investigation pipeline.
-- **Historical Analytics Dashboard:** A dedicated `/analytics` view tracking all prior investigations, calculating risk distribution, and automatically flagging **Systemic Recurring Issues**.
-- **Comparison Workspace:** Select any two historical investigations to calculate delta changes in root causes and business impact over time.
-- **Deterministic PDF Export:** Generates branded, structured PDF reports of the investigation findings using `ReportLab`.
+# Features
 
-## Technology Stack
+## Experience Monitoring
 
-### Backend
-- **Framework:** FastAPI
-- **AI Orchestration:** LangGraph (State Graphs)
-- **Data Processing:** Pandas, NumPy, Scikit-learn
-- **Database:** SQLite & SQLAlchemy (for Investigation Memory)
-- **Reporting:** ReportLab
+Supports multiple actuarial investigation engines.
 
-### Frontend
-- **Framework:** Next.js (React)
-- **Styling:** Tailwind CSS, Framer Motion
-- **Icons & UI:** Lucide-React, shadcn/ui components
-- **Visualizations:** Recharts, Three.js (Fiber)
+- Frequency Experience Monitoring
+- Severity Experience Monitoring
+- Combined Experience Monitoring
 
-## Getting Started
+Future extensions
 
-### 1. Backend Setup
+- Reserve Monitoring
+- Loss Ratio Monitoring
+
+---
+
+## Dataset Contract Detection
+
+Automatically detects uploaded dataset types without relying on filenames.
+
+Supported contracts
+
+- Frequency
+- Severity
+- Combined
+
+Future
+
+- Reserve
+- Loss Ratio
+
+The platform dynamically selects the appropriate investigation engine based on the detected dataset contract.
+
+---
+
+## Enterprise Data Readiness Engine
+
+Every uploaded dataset passes through a production-grade validation pipeline before investigation begins.
+
+Checks include
+
+- Schema validation
+- Contract validation
+- Data completeness
+- Missing value analysis
+- Duplicate detection
+- Distribution profiling
+- Statistical credibility
+- Coverage analysis
+- Feature profiling
+- ML readiness
+- Data dictionary generation
+- Capability matrix generation
+
+A Data Readiness Score (0–100) is generated before execution.
+
+---
+
+## Investigation Pipeline
+
+Every investigation follows the same deterministic workflow.
+
+Dataset Upload
+
+↓
+
+Contract Detection
+
+↓
+
+Engine Context Generation
+
+↓
+
+Data Readiness
+
+↓
+
+Frequency Engine
+
+↓
+
+Severity Engine
+
+↓
+
+Combined Engine
+
+↓
+
+AI Planner
+
+↓
+
+Decision Support
+
+↓
+
+Executive Report
+
+---
+
+## Mathematical Engines
+
+### Frequency Engine
+
+Implements
+
+- Expected Claims
+- Actual Claims
+- Observed Frequency
+- Expected Frequency
+- Relative Drift
+- O/E
+- Poisson-binomial variance
+- Z-score
+- One-sided hypothesis testing
+- Benjamini-Hochberg FDR
+- Segment Surveillance
+- Rolling Drift
+- Contribution Analysis
+
+---
+
+### Severity Engine
+
+Implements
+
+- Expected Severity
+- Observed Severity
+- O/E Ratio
+- Bootstrap Confidence Intervals
+- Cost Band Diagnostics
+- Distribution Profiling
+- Segment Surveillance
+- Upper Tail Detection
+- Broad Deterioration
+- Mixed Deterioration
+- High Cost Concentration
+
+---
+
+### Combined Engine
+
+Integrates Frequency and Severity.
+
+Calculates
+
+- Total Excess Claim Cost
+- Incidence Effect
+- Severity Effect
+- Interaction Effect
+
+Supports
+
+- Frequency-led deterioration
+- Severity-led deterioration
+- Dual deterioration
+- Mix deterioration
+
+---
+
+# AI Investigation
+
+The AI Planner performs
+
+Observation
+
+↓
+
+Hypothesis
+
+↓
+
+Evidence Collection
+
+↓
+
+Decision
+
+↓
+
+Confidence
+
+↓
+
+Executive Summary
+
+The planner never performs statistical calculations itself.
+
+All calculations are deterministic and generated by the actuarial engines.
+
+---
+
+# Monitoring & Observability
+
+Every investigation generates
+
+Execution Context
+
+Execution Timeline
+
+Planner Trace
+
+Statistical Trace
+
+Performance Metrics
+
+Resource Usage
+
+Execution Replay
+
+---
+
+# Executive Dashboard
+
+The enterprise UI contains
+
+Dashboard
+
+Data Readiness
+
+Investigation Workspace
+
+Monitoring
+
+Reports
+
+History
+
+Scenario Lab
+
+---
+
+# Technology Stack
+
+## Frontend
+
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Framer Motion
+- Recharts
+
+---
+
+## Backend
+
+- FastAPI
+- Python
+- LangGraph
+- LangChain
+- Pandas
+- NumPy
+- SciPy
+- Pydantic
+
+---
+
+## AI
+
+- Google Gemini
+- LangGraph Planner
+- Structured Output
+- Deterministic Prompt Pipeline
+
+---
+
+## Database
+
+- SQLite
+
+Future
+
+- PostgreSQL
+
+---
+
+## DevOps
+
+- Docker
+- Docker Compose
+
+---
+
+# Architecture
+
+```
+Frontend (Next.js)
+
+        │
+
+        ▼
+
+FastAPI Backend
+
+        │
+
+ ┌───────────────┐
+ │ Contract Layer│
+ └───────────────┘
+
+        │
+
+        ▼
+
+Engine Context
+
+        │
+
+        ▼
+
+Data Readiness
+
+        │
+
+ ┌─────────────┐
+ │ Frequency   │
+ │ Severity    │
+ │ Combined    │
+ └─────────────┘
+
+        │
+
+        ▼
+
+AI Planner
+
+        │
+
+        ▼
+
+Business Impact
+
+        │
+
+        ▼
+
+Executive Report
+
+        │
+
+        ▼
+
+Monitoring & Timeline
+```
+
+---
+
+# Docker
+
+Build
 
 ```bash
-# Navigate to the backend directory
+docker compose build
+```
+
+Run
+
+```bash
+docker compose up
+```
+
+Stop
+
+```bash
+docker compose down
+```
+
+---
+
+# Local Development
+
+Backend
+
+```bash
 cd backend
 
-# Create a virtual environment
-python3 -m venv venv
+python -m venv venv
+
 source venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
 
-# Start the FastAPI server
-python main.py
+uvicorn main:app --reload
 ```
-The backend API will run on `http://localhost:8000`.
 
-### 2. Frontend Setup
+Frontend
 
 ```bash
-# Navigate to the frontend directory
 cd frontend
 
-# Install dependencies
 npm install
 
-# Start the Next.js development server
 npm run dev
 ```
-The frontend application will be available at `http://localhost:3000`.
 
-## Application Architecture
+---
 
-- **State Machine:** The backend uses `langgraph` to construct a state machine (`InvestigationState`). The graph moves sequentially from `Drift Detection` -> `Feature Ranking` -> `Event Reconstruction` -> `Business Impact Analysis` -> `Decision Support` -> `Report Generation`.
-- **Knowledge Base Integration:** Instead of relying on stochastic LLMs for critical business logic, the application uses strict, deterministic matching against `actuarial_knowledge.json`.
-- **Global Command Palette:** Hit `Cmd/Ctrl + K` anywhere in the app to access global search, run new investigations, open the AI Copilot, or navigate to analytics.
+# Environment Variables
 
-## License
+Backend
 
-This project is licensed under the MIT License.
+```
+HOST=0.0.0.0
+
+PORT=8000
+
+GEMINI_API_KEY=YOUR_API_KEY
+```
+
+Frontend
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+---
+
+# Project Structure
+
+```
+backend/
+
+    agent/
+
+    contracts/
+
+    monitoring/
+
+    quality/
+
+    engines/
+
+    statistics_utils/
+
+    audit/
+
+    config/
+
+    data/
+
+frontend/
+
+    app/
+
+    components/
+
+    lib/
+
+docs/
+
+tests/
+
+docker-compose.yml
+```
+
+---
+
+# Testing
+
+Run all acceptance suites
+
+```bash
+python backend/test_frequency_acceptance.py
+
+python backend/test_severity_acceptance.py
+
+python backend/test_combined_acceptance.py
+```
+
+---
+
+# Validation
+
+Current automated acceptance coverage
+
+- Frequency Engine
+- Severity Engine
+- Combined Engine
+
+Total Acceptance Tests
+
+**146+ passing tests**
+
+covering
+
+- Mathematical correctness
+- Statistical correctness
+- Calibration
+- Regression safety
+- Formula verification
+- Engine consistency
+
+---
+
+# Roadmap
+
+Completed
+
+- Frequency Engine
+- Severity Engine
+- Combined Engine
+- Dataset Contracts
+- Data Readiness
+- Monitoring
+- AI Planner
+- Executive Dashboard
+- Docker Support
+
+Upcoming
+
+- Reserve Engine
+- Loss Ratio Engine
+- PostgreSQL
+- Authentication
+- RBAC
+- Kubernetes Deployment
+- Cloud Storage
+- Audit API
+- Multi-user investigations
+
+---
+
+# License
+
+This project is intended for educational, actuarial research, and enterprise AI experimentation.
+
+---
+
+# Author
+
+Sai Hrudhay Gubba
+
+B.Tech CSE (AI & ML)
+
+Newton School of Technology
+
+GitHub
+
+https://github.com/gubbahrudhay
