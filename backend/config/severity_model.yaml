@@ -1,0 +1,40 @@
+# Severity Model Actuarial Assumptions
+# This file contains the pre-event pricing/experience assumptions.
+# All effects are specified as multiplicative relativities.
+# The engine/generator loader will internally transform these using log(relativity).
+
+base_expected_severity: 5000
+expected_annual_trend: 0.05 # 5% expected annual severity inflation
+
+severity_relativities:
+  product:
+    "Standard Care": 1.00
+    "Senior Care Gold": 1.30
+    "Family Plus": 1.10
+  age:
+    "18-35": 0.90
+    "36-59": 1.00
+    "60+": 1.40
+  region:
+    "North": 1.05
+    "South": 0.95
+    "East": 1.00
+    "West": 1.00
+  claim_category:
+    "Cardiac": 1.50
+    "Cancer": 2.00
+    "Respiratory": 1.10
+    "Orthopedic": 1.30
+    "General": 0.80
+  hospital_type:
+    "Public": 0.80
+    "Private": 1.40
+    "Specialist": 1.60
+
+# Configured lognormal shape parameter (sigma) per category to capture tail risk and positive skewness
+category_volatility:
+  "Cardiac": 0.40
+  "Cancer": 0.70
+  "Respiratory": 0.50
+  "Orthopedic": 0.40
+  "General": 0.30

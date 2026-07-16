@@ -1,9 +1,23 @@
 from typing import Dict, Any
+import yaml
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+
+def load_config():
+    config_path = os.path.join(os.path.dirname(__file__), '..', 'config', 'system_config.yaml')
+    with open(config_path, 'r') as f:
+        return yaml.safe_load(f)
 
 class EngineContextBuilder:
     @staticmethod
     def build(dataset_type: str, schema_version: str, recommended_engine: str) -> Dict[str, Any]:
+        config = load_config()
+        contexts = config.get("engine_contexts", {})
         
+        logger.info(f"Building EngineContext for recommended_engine: {recommended_engine}")
+
         # Base config
         context = {
             "dataset_type": dataset_type,
@@ -15,56 +29,13 @@ class EngineContextBuilder:
             "planner_configuration": {}
         }
         
-        if recommended_engine == "Frequency":
-            context["investigation_configuration"] = {
-                "drift_threshold": 0.05,
-                "credibility_threshold": 0.8,
-                "minimum_exposure": 100
-            }
-            context["business_rule_configuration"] = {
-                "rules": ["exposure_positive", "frequency_bounds"]
-            }
-            context["statistical_configuration"] = {
-                "tests": ["z_score", "chi_square"],
-                "confidence_level": 0.95
-            }
-            context["planner_configuration"] = {
-                "focus": "frequency",
-                "goal": "Identify root causes of frequency drift"
-            }
-        elif recommended_engine == "Severity":
-            context["investigation_configuration"] = {
-                "severity_threshold": 0.1,
-                "cost_threshold": 10000,
-                "minimum_exposure": 50
-            }
-            context["business_rule_configuration"] = {
-                "rules": ["claim_amount_positive"]
-            }
-            context["statistical_configuration"] = {
-                "tests": ["t_test", "anova"],
-                "confidence_level": 0.90
-            }
-            context["planner_configuration"] = {
-                "focus": "severity",
-                "goal": "Identify root causes of severity drift"
-            }
-        elif recommended_engine == "Combined":
-            context["investigation_configuration"] = {
-                "drift_threshold": 0.05,
-                "credibility_threshold": 0.8,
-                "minimum_exposure": 100
-            }
-            context["business_rule_configuration"] = {
-                "rules": ["exposure_positive", "frequency_bounds", "claim_amount_positive"]
-            }
-            context["statistical_configuration"] = {
-                "tests": ["z_score", "t_test"],
-                "confidence_level": 0.95
-            }
-            context["planner_configuration"] = {
-                "focus": "combined",
-                "goal": "Identify root causes of frequency and severity drift"
-            }
+        if recommended_engine in contexts:
+            engine_conf = contexts[recommended_engine]
+            context["investigation_configuration"] = engine_conf.get("investigation_configuration", {})
+            context["business_rule_configuration"] = engine_conf.get("business_rule_configuration", {})
+            context["statistical_configuration"] = engine_conf.get("statistical_configuration", {})
+            context["planner_configuration"] = engine_conf.get("planner_configuration", {})
+        else:
+            logger.warning(f"No configuration found in system_config.yaml for engine: {recommended_engine}")
 
         return context

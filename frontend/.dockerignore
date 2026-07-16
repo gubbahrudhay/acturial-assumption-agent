@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+build
+dist
+.env
+.git
+.venv
+__pycache__
+*.log
+coverage/
+datasets/
+logs/
+cache/
+temporary_files/
+acceptance_reports/

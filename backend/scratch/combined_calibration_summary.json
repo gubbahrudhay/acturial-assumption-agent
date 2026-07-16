@@ -1,0 +1,165 @@
+{
+  "null_calibration": {
+    "num_simulations": 500,
+    "CFIR": {
+      "k": 245,
+      "rate": 0.49,
+      "ci_95": [
+        0.4464261747403093,
+        0.5337263120689218
+      ]
+    },
+    "CPFTR": {
+      "k": 15,
+      "rate": 0.03,
+      "ci_95": [
+        0.018263213197913384,
+        0.04890366683594573
+      ]
+    },
+    "Freq_FTR": {
+      "k": 28,
+      "rate": 0.056,
+      "ci_95": [
+        0.03902562068315149,
+        0.0797447936467069
+      ]
+    },
+    "Sev_FTR": {
+      "k": 23,
+      "rate": 0.046,
+      "ci_95": [
+        0.030845108370816204,
+        0.06807779276827323
+      ]
+    },
+    "Mix_False_Classification": {
+      "k": 198,
+      "rate": 0.396,
+      "ci_95": [
+        0.35408170350275736,
+        0.4395041593132456
+      ]
+    },
+    "Cross_Engine_False_Alignment": {
+      "k": 0,
+      "rate": 0.0,
+      "ci_95": [
+        4.336808689942018e-19,
+        0.007624340461552241
+      ]
+    },
+    "No_Material_Pattern_Accuracy": {
+      "k": 260,
+      "rate": 0.52,
+      "ci_95": [
+        0.47622345295527013,
+        0.5634715734262677
+      ]
+    },
+    "rule_of_three_upper_bounds": {
+      "Alignment": 0.005973551516349596
+    },
+    "Combined_OE_Distribution": {
+      "mean": 0.9998274655979352,
+      "std": 0.018031047371792924,
+      "min": 0.9082812499008505,
+      "max": 1.0561076274188446,
+      "p5": 0.9720991851272004,
+      "p50": 0.9990451369377791,
+      "p95": 1.0304425251139073
+    },
+    "Excess_Cost_Distribution": {
+      "mean": -2622.916150216069,
+      "std": 267766.8424064497,
+      "min": -1358483.0604023188,
+      "max": 832263.6732598059
+    },
+    "Decomposition_Distributions": {
+      "Incidence_Effect": {
+        "mean": 5606.595664327147,
+        "std": 207321.93944376847
+      },
+      "Severity_Effect": {
+        "mean": -8093.548617975397,
+        "std": 180698.2343359022
+      },
+      "Mix_Effect": {
+        "mean": -135.96319656781193,
+        "std": 2731.466806935972
+      }
+    }
+  },
+  "scenario_power": {
+    "A_Frequency_Only": {
+      "power": 1.0,
+      "pattern_accuracy": 1.0,
+      "segment_recovery": 1.0,
+      "ci_power": [
+        0.9286524008666414,
+        1.0
+      ]
+    },
+    "B_Severity_Only": {
+      "power": 1.0,
+      "pattern_accuracy": 1.0,
+      "ci_power": [
+        0.9286524008666414,
+        1.0
+      ]
+    },
+    "C_Aligned_Same_Segment": {
+      "power": 1.0,
+      "pattern_accuracy": 1.0,
+      "alignment_recall": 0.0,
+      "segment_recovery": 1.0,
+      "ci_power": [
+        0.9286524008666414,
+        1.0
+      ]
+    },
+    "D_Different_Segment": {
+      "power": 1.0,
+      "false_alignment_rate": 0.0,
+      "freq_segment_recovery": 1.0,
+      "sev_segment_recovery": 1.0,
+      "ci_power": [
+        0.9286524008666414,
+        1.0
+      ]
+    },
+    "E_Mix_Interaction": {
+      "power": 1.0,
+      "mix_pattern_rate": 0.16,
+      "mix_material_rate": 1.0,
+      "ci_power": [
+        0.9286524008666414,
+        1.0
+      ],
+      "example_decomposition": {
+        "expected_claims": 4773.329480086569,
+        "actual_claims": 5102,
+        "exposure": 60000.0,
+        "expected_total_cost": 14886844.007379336,
+        "observed_total_cost": 16727703.82,
+        "expected_avg_severity": 3118.7547537802375,
+        "observed_avg_severity": 3278.656177969424,
+        "combined_oe": 1.1236568215337084,
+        "combined_drift": 0.12365682153370838,
+        "excess_cost": 1840859.812620664,
+        "positive_excess_cost": 1840859.812620664,
+        "incidence_effect": 1025042.7464074359,
+        "severity_effect": 763262.181990071,
+        "mix_effect": 52554.884223158006
+      }
+    },
+    "F_Low_Credibility": {
+      "suppression_rate": 0.0,
+      "false_escalation_rate": 1.0,
+      "ci_suppression": [
+        6.938893903907228e-18,
+        0.07134759913335872
+      ]
+    }
+  }
+}

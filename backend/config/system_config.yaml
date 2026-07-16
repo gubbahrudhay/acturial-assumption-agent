@@ -1,0 +1,131 @@
+dataset_contracts:
+  Frequency:
+    required_columns:
+      - Expected_Frequency
+      - Exposure
+      - Claim
+      - Policy_ID
+    allow_claim_level_only: false
+
+  Severity:
+    required_columns:
+      - Actual_Claim_Amount
+      - Expected_Severity
+      - Claim_ID
+      - Claim_Date
+    require_claim_level_only: true
+
+  Combined:
+    required_columns:
+      - Expected_Frequency
+      - Expected_Severity
+      - Actual_Claim_Amount
+      - Exposure
+      - Premium
+    allow_claim_level_only: false
+
+engine_capabilities:
+  Frequency:
+    required_columns:
+      - Exposure
+      - Claim
+    allow_claim_level_only: false
+    missing_reason: "Missing Exposure or Claim"
+    claim_only_reason: "Missing Frequency Components (Claim-level schema only)"
+
+  Severity:
+    required_columns:
+      - Actual_Claim_Amount
+      - Expected_Severity
+      - Claim_ID
+    missing_reason: "Missing Claim Amount, Expected Severity, or Claim ID"
+
+  Combined:
+    required_engines:
+      - Frequency
+      - Severity
+    required_columns:
+      - Premium
+    missing_reason: "Missing Frequency Components, Severity Components, or Premium"
+
+  Loss Ratio:
+    required_columns:
+      - Premium
+      - Actual_Claim_Amount
+    missing_reason: "Missing Premium or Claim Amount"
+
+  Reserve:
+    required_columns:
+      - Reserve_Amount
+    missing_reason: "Missing Reserve Fields"
+
+engine_contexts:
+  Frequency:
+    investigation_configuration:
+      drift_threshold: 0.05
+      credibility_threshold: 0.8
+      minimum_exposure: 500
+      minimum_expected_claims: 10
+      fdr_target: 0.05
+      operational_false_investigation_target: 0.05
+    business_rule_configuration:
+      rules:
+        - exposure_positive
+        - frequency_bounds
+    statistical_configuration:
+      tests:
+        - poisson_binomial_z_score
+        - chi_square
+      confidence_level: 0.95
+    planner_configuration:
+      focus: frequency
+      goal: Identify root causes of frequency drift
+
+  Severity:
+    investigation_configuration:
+      severity_drift_threshold: 0.05
+      minimum_claims_for_investigation: 30
+      bootstrap_iterations: 500
+      confidence_level: 0.95
+      high_cost_percentile: 99
+      fdr_target: 0.05
+      operational_false_investigation_target: 0.05
+    business_rule_configuration:
+      rules:
+        - claim_amount_positive
+        - expected_severity_positive
+        - time_coverage_valid
+    statistical_configuration:
+      tests:
+        - bootstrap_ci
+      confidence_level: 0.95
+    planner_configuration:
+      focus: severity
+      goal: Identify primary statistical contributors of severity drift
+
+  Combined:
+    investigation_configuration:
+      drift_threshold: 0.05
+      credibility_threshold: 0.8
+      minimum_exposure: 100
+      severity_drift_threshold: 0.05
+      minimum_claims_for_investigation: 30
+      bootstrap_iterations: 500
+      confidence_level: 0.95
+      high_cost_percentile: 99
+      fdr_target: 0.05
+      operational_false_investigation_target: 0.05
+    business_rule_configuration:
+      rules:
+        - exposure_positive
+        - frequency_bounds
+        - claim_amount_positive
+        - expected_severity_positive
+    statistical_configuration:
+      tests:
+        - z_score
+        - bootstrap_ci
+      confidence_level: 0.95
+    planner_configuration:
+      focus: combined
+      goal: Identify root causes of frequency and severity drift

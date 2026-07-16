@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import axios from "axios"
 import { Upload } from "lucide-react"
+import { API_BASE_URL } from "@/lib/api"
 
 export default function UploadDatasetButton() {
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -17,7 +18,7 @@ export default function UploadDatasetButton() {
     formData.append("file", file)
 
     try {
-      await axios.post("http://localhost:8000/api/upload", formData)
+      await axios.post(`${API_BASE_URL}/api/upload`, formData)
       // Refresh the page to reload datasets
       window.location.reload()
     } catch (error) {
@@ -44,9 +45,9 @@ export default function UploadDatasetButton() {
       <button 
         onClick={() => fileInputRef.current?.click()}
         disabled={isUploading}
-        className="text-[13px] font-bold tracking-wide text-[#222222] hover:bg-[#f7f7f7] px-4 py-2 rounded-full transition-colors hidden sm:flex items-center gap-2 uppercase disabled:opacity-50"
+        className="text-body-sm-strong text-ink bg-surface border border-hairline hover:bg-surface-elevated px-4 py-1.5 rounded-[var(--radius-md)] transition-colors hidden sm:flex items-center gap-2 disabled:opacity-50"
       >
-        <Upload className="h-4 w-4" />
+        <Upload className="h-4 w-4 text-mute" />
         {isUploading ? "Uploading..." : "Upload Dataset"}
       </button>
     </>

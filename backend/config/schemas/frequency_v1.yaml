@@ -5,35 +5,37 @@ required_columns:
   - Policy_ID
   - Product
   - Region
-  - Age
-  - Premium
+  - Age_Group
   - Exposure
   - Claim
   - Expected_Frequency
-  - Policy_Start_Date
-  - Policy_End_Date
+  - Year
+  - Month
 
 optional_columns:
+  - Plan_Type
   - Distribution_Channel
   - Gender
+  - Customer_ID
+  - Quarter
 
 column_types:
   Policy_ID: string
   Product: string
   Region: string
-  Age: integer
-  Premium: float
+  Age_Group: string
   Exposure: float
   Claim: integer
   Expected_Frequency: float
-  Policy_Start_Date: date
-  Policy_End_Date: date
+  Year: integer
+  Month: integer
+  Plan_Type: string
   Distribution_Channel: string
   Gender: string
+  Customer_ID: string
+  Quarter: string
 
 numeric_constraints:
-  Premium:
-    min: 0
   Exposure:
     min: 0
   Claim:
@@ -42,10 +44,9 @@ numeric_constraints:
   Expected_Frequency:
     min: 0
     max: 1
-  Age:
-    min: 0
-    max: 120
-
-date_constraints:
-  Policy_End_Date:
-    after: Policy_Start_Date
+  Year:
+    min: 2000
+    max: 2100
+  Month:
+    min: 1
+    max: 12

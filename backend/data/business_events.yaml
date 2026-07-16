@@ -1,21 +1,24 @@
 # Business Events Configuration
-# These events are processed by the Business Event Engine to inject gradual drift over time.
-# Effect size acts as a multiplier on the logit (or a direct additive term to the logit).
+# These events are processed by the Experience Simulation Engine.
+# Type can be 'frequency', 'severity', or 'severity_outlier'.
 
 events:
+  # --- Frequency Events ---
   - event_name: "Northern Oncology Growth"
     enabled: true
+    type: "frequency"
     start_month: 3
     duration: 10
-    progression_curve: "linear" # linear, exponential, or step
+    progression_curve: "linear"
     affected_population:
       region: "North"
       age_group: "60+"
-    effect_size: 1.2 # Additive shift to logit for Cancer claims
+    effect_size: 1.2
     target_disease: "Cancer"
 
   - event_name: "Severe Winter Respiratory Strain"
     enabled: true
+    type: "frequency"
     start_month: 1
     duration: 2
     progression_curve: "exponential"
@@ -26,6 +29,7 @@ events:
 
   - event_name: "Southern Orthopedic Shift"
     enabled: true
+    type: "frequency"
     start_month: 6
     duration: 6
     progression_curve: "linear"
@@ -37,6 +41,7 @@ events:
 
   - event_name: "General Cardiac Increase"
     enabled: true
+    type: "frequency"
     start_month: 4
     duration: 8
     progression_curve: "step"
@@ -44,3 +49,44 @@ events:
       age_group: "36-59"
     effect_size: 0.9
     target_disease: "Cardiac"
+
+  # --- Severity Events ---
+  - event_name: "Gradual Medical Inflation"
+    enabled: true
+    type: "severity"
+    start_month: 1
+    duration: 12
+    progression_curve: "compound"
+    affected_population: {} # Affects all claims
+    effect_size: 0.08 # 8% annual inflation trend (compounding monthly)
+
+  - event_name: "Private Hospital Cost Escalation"
+    enabled: true
+    type: "severity"
+    start_month: 3
+    duration: 10
+    progression_curve: "linear"
+    affected_population:
+      hospital_type: "Private"
+    effect_size: 0.15 # +15% cost escalation
+
+  - event_name: "Oncology Treatment Cost Shift"
+    enabled: true
+    type: "severity"
+    start_month: 1
+    duration: 12
+    progression_curve: "linear"
+    affected_population:
+      region: "North"
+      claim_category: "Cancer"
+    effect_size: 0.35 # +35% cancer cost escalation in the North
+
+  - event_name: "High-Cost Claim Concentration"
+    enabled: true
+    type: "severity_outlier"
+    start_month: 6
+    duration: 6
+    progression_curve: "step"
+    affected_population:
+      region: "North"
+    effect_size: 5.0 # Outliers are 5x normal claims cost

@@ -16,6 +16,12 @@ from database import get_db, InvestigationRun
 from sqlalchemy.orm import Session
 from fastapi import Depends
 
+from logger import get_logger, get_execution_context
+import time
+import os
+
+logger = get_logger()
+
 # Milestone 4 Imports
 from contracts.contract_detector import ContractDetector
 from contracts.engine_compatibility import EngineCompatibility
@@ -23,6 +29,29 @@ from contracts.engine_context import EngineContextBuilder
 from quality.validator import DataReadinessValidator
 
 app = FastAPI(title="Assumption Monitoring Agent API")
+
+@app.on_event("startup")
+async def startup_event():
+    logger.info("Initializing Assumption Monitoring Agent...", extra={"engine": "System"})
+    
+    # Verify environment
+    if not os.getenv("GEMINI_API_KEY"):
+        logger.warning("GEMINI_API_KEY is not set. AI Planning will fail.", extra={"severity": "High"})
+        
+    # Verify directories
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+        logger.info(f"Created data directory at {DATA_DIR}", extra={"engine": "System"})
+        
+    # Verify DB
+    try:
+        from database import engine, Base
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database initialized successfully", extra={"engine": "Database"})
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}", extra={"severity": "Critical", "engine": "Database"})
+        sys.exit(1)
+
 
 # Add CORS middleware to allow Next.js frontend to communicate
 app.add_middleware(
@@ -82,9 +111,33 @@ def load_data() -> pd.DataFrame:
         raise HTTPException(status_code=404, detail="Dataset not found. Please generate the data first.")
     return pd.read_csv(path)
 
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+@app.get("/api/ready")
+async def readiness_check():
+    # Check DB
+    db_ok = True
+    try:
+        from database import SessionLocal
+        db = SessionLocal()
+        db.execute("SELECT 1")
+        db.close()
+    except:
+        db_ok = False
+        
+    return {
+        "status": "ready" if db_ok else "unready",
+        "database": "connected" if db_ok else "disconnected",
+        "planner": "configured" if os.getenv("GEMINI_API_KEY") else "missing_api_key",
+        "engine": "available"
+    }
+
+@app.get("/api/version")
+async def version_check():
+    return {"version": "1.0.0", "status": "production-grade"}
 
 @app.get("/api/validate")
 async def validate_dataset():
@@ -180,6 +233,7 @@ async def analyze_readiness(request: Request):
 
 @app.post("/api/agent/run")
 async def run_agent(request: Request):
+    ctx = get_execution_context()
     try:
         data = await request.json()
         api_key = data.get("api_key", "")
@@ -190,15 +244,26 @@ async def run_agent(request: Request):
         base_path = os.path.join(os.path.dirname(__file__), "data")
         df_path = os.path.join(base_path, dataset_name)
         if not os.path.exists(df_path):
-            df_path = os.path.join(base_path, "insurance_experience.csv")
-            dataset_name = "insurance_experience.csv"
+            logger.error(f"Dataset not found for agent run: {dataset_name}", extra={"engine": "Agent"})
+            raise HTTPException(status_code=404, detail="Dataset not found")
         
+        # Detect contract, assess compatibility, and build context
+        df = pd.read_csv(df_path)
+        contract_type = ContractDetector.detect(df)
+        compatibility = EngineCompatibility.assess(df, contract_type)
+        engine_context = EngineContextBuilder.build(
+            dataset_type=contract_type,
+            schema_version="1",
+            recommended_engine=compatibility.get("recommended_engine", "Unknown")
+        )
+
         from agent.planner import create_agent_graph
         graph = create_agent_graph()
         initial_state = {
             "investigation_id": f"INV-{uuid4().hex[:8].upper()}",
             "api_key": api_key,
             "df_path": df_path,
+            "engine_context": engine_context,
             "dataset_metadata": {"filename": dataset_name},
             "drift_metrics": {},
             "historical_baseline": {},
@@ -211,7 +276,12 @@ async def run_agent(request: Request):
             "chat_history": [],
             "final_report": "",
             "investigation_status": "start",
-            "messages": []
+            "messages": [],
+            "trigger_source": "portfolio",
+            "trigger_dimension": "",
+            "trigger_segment": "",
+            "trigger_reason": "",
+            "segment_metrics": {}
         }
         
         # Invoke the graph
@@ -241,7 +311,7 @@ async def run_agent(request: Request):
             db.add(db_run)
             db.commit()
         except Exception as e:
-            print(f"Error saving to DB: {e}")
+            logger.error(f"Error saving to DB: {e}", extra={"engine": "Database", "severity": "High"})
         finally:
             db.close()
             
@@ -258,7 +328,12 @@ async def run_agent(request: Request):
             "explainability_report": result.get("explainability_report", {}),
             "chat_history": result.get("chat_history", []),
             "report": result.get("final_report", ""),
-            "logs": logs
+            "logs": logs,
+            "trigger_source": result.get("trigger_source", "portfolio"),
+            "trigger_dimension": result.get("trigger_dimension"),
+            "trigger_segment": result.get("trigger_segment"),
+            "trigger_reason": result.get("trigger_reason"),
+            "segment_metrics": result.get("segment_metrics")
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -459,10 +534,16 @@ async def generate_pdf_report(request: Request):
         
         # Executive Summary
         impact = state.get("business_impact", {})
+        active_engine = state.get("engine_context", {}).get("active_engine", "Frequency")
         Story.append(Paragraph("Executive Summary", styles['CustomH2']))
         Story.append(Paragraph(f"Risk Level: {impact.get('risk_level', 'Unknown')}", styles['CustomNormal']))
         Story.append(Paragraph(f"Primary Driver: {impact.get('most_impacted_portfolio', 'Unknown')}", styles['CustomNormal']))
-        Story.append(Paragraph(f"Unexpected Claims: +{impact.get('additional_claims', 0)}", styles['CustomNormal']))
+        if active_engine == "Severity":
+            Story.append(Paragraph(f"Excess Claim Cost: {impact.get('excess_cost', 0.0):,.2f}", styles['CustomNormal']))
+            Story.append(Paragraph(f"Claims Affected: {impact.get('claim_count', 0)}", styles['CustomNormal']))
+            Story.append(Paragraph(f"High-Cost Claim Share: {impact.get('high_cost_share', 0.0)*100:.1f}%", styles['CustomNormal']))
+        else:
+            Story.append(Paragraph(f"Unexpected Claims: +{impact.get('additional_claims', 0)}", styles['CustomNormal']))
         Story.append(Spacer(1, 24))
         
         # Event Inference
@@ -488,4 +569,6 @@ async def generate_pdf_report(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    uvicorn.run("main:app", host=host, port=port, reload=True)

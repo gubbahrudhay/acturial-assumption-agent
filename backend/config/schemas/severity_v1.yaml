@@ -2,31 +2,39 @@ name: severity
 version: 1
 
 required_columns:
+  - Claim_ID
   - Policy_ID
   - Product
   - Region
   - Age
-  - Claim_Amount
+  - Actual_Claim_Amount
   - Expected_Severity
   - Claim_Date
+  - Claim_Category
+  - Hospital_Type
 
 optional_columns:
   - Hospital_Code
   - Diagnosis_Code
+  - Claim_Status
 
 column_types:
+  Claim_ID: string
   Policy_ID: string
   Product: string
   Region: string
   Age: integer
-  Claim_Amount: float
+  Actual_Claim_Amount: float
   Expected_Severity: float
   Claim_Date: date
+  Claim_Category: string
+  Hospital_Type: string
   Hospital_Code: string
   Diagnosis_Code: string
+  Claim_Status: string
 
 numeric_constraints:
-  Claim_Amount:
+  Actual_Claim_Amount:
     min: 0
   Expected_Severity:
     min: 0

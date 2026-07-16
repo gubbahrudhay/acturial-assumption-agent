@@ -1,5 +1,10 @@
 import pandas as pd
 from typing import Dict, Any, List
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from logger import get_logger
+logger = get_logger()
 
 def validate_data(df: pd.DataFrame) -> Dict[str, Any]:
     """
@@ -37,6 +42,14 @@ def validate_data(df: pd.DataFrame) -> Dict[str, Any]:
                 "type": "invalid_exposures",
                 "details": f"{len(invalid_exposure)} records with exposure <= 0 or > 1 found."
             })
+        
+        # Check for non-unit exposures (Frequency v1 limitation)
+        non_unit_exposure = df[(df['Exposure'] - 1.0).abs() > 1e-5]
+        if len(non_unit_exposure) > 0:
+            report["issues"].append({
+                "type": "non_unit_exposures",
+                "details": "Frequency v1 statistical model assumes unit policy-year Bernoulli exposure. Fractional or variable exposure requires a rate/count model."
+            })
             
     if len(report["issues"]) > 0:
         report["status"] = "warning"
@@ -49,4 +62,4 @@ if __name__ == "__main__":
     csv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'insurance_experience.csv')
     if os.path.exists(csv_path):
         df = pd.read_csv(csv_path)
-        print(validate_data(df))
+        logger.info(validate_data(df))

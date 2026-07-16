@@ -2,6 +2,11 @@ import os
 import json
 from datetime import datetime
 from typing import Dict, Any
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from logger import get_logger
+logger = get_logger()
 
 LOG_FILE = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data', 'decision_log.jsonl')
 
@@ -30,4 +35,4 @@ def log_investigation_run(state: Dict[str, Any]):
         with open(LOG_FILE, "a") as f:
             f.write(json.dumps(log_entry) + "\n")
     except Exception as e:
-        print(f"Failed to write decision log: {e}")
+        logger.error(f"Failed to write decision log: {e}")

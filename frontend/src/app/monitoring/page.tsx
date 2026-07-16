@@ -1,102 +1,144 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Activity, Clock, Cpu, Server, Network } from "lucide-react"
+import { Activity, Clock, Cpu, Server, Network, ShieldCheck, ShieldAlert, RefreshCw } from "lucide-react"
+import { EnterpriseCard, EnterpriseCardHeader, EnterpriseCardTitle, EnterpriseCardContent } from "@/components/ui/EnterpriseCard"
+import { API_BASE_URL } from "@/lib/api"
+import { motion } from "framer-motion"
+
+interface HealthData {
+  status: string
+  version?: string
+  uptime?: string
+}
+
+interface TimelineStep {
+  name: string
+  ms: number
+  color: string
+  pct: number
+}
+
+// Removed mock metrics and timelines. Real implementations should fetch from backend.
+
+function MetricCard({ icon: Icon, label, value, delay = 0 }: { icon: any, label: string, value: string, delay?: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay }}
+    >
+      <EnterpriseCard>
+        <EnterpriseCardContent className="p-5 flex flex-col justify-center min-h-[110px]">
+          <div className="flex items-center gap-2 text-ash text-caption-sm font-medium uppercase tracking-wider mb-3">
+            <Icon className="h-4 w-4" /> {label}
+          </div>
+          <div className="text-display-sm text-ink font-mono tabular-nums">{value}</div>
+        </EnterpriseCardContent>
+      </EnterpriseCard>
+    </motion.div>
+  )
+}
 
 export default function MonitoringPage() {
-  // In a full implementation, we'd fetch the specific ExecutionContext from the backend.
-  // For now, we render a placeholder dashboard to fulfill the observability layer UI requirement.
+  const [health, setHealth] = useState<HealthData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchHealth = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const res = await fetch(`${API_BASE_URL}/api/health`)
+      if (!res.ok) throw new Error(`Status ${res.status}`)
+      const data = await res.json()
+      setHealth(data)
+    } catch (err: any) {
+      setError(err.message || "Failed to reach backend")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchHealth() }, [])
+
+  const isHealthy = health?.status === "ok" || health?.status === "healthy"
 
   return (
-    <div className="py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-[#222222] flex items-center gap-2">
-            <Activity className="h-8 w-8 text-[#ff385c]" />
-            Execution Monitoring & Observability
-          </h1>
-          <p className="text-[#6a6a6a] mt-2">
-            Real-time execution timelines, performance metrics, and resource monitoring.
-          </p>
+    <div className="flex flex-col min-h-screen p-6 md:p-8 lg:p-10">
+      <div className="w-full max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-display-lg text-ink tracking-tight flex items-center gap-3"
+            >
+              <Activity className="h-8 w-8 text-accent-blue" />
+              Execution Monitoring
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="text-body-lg text-mute mt-2"
+            >
+              Real-time execution timelines, performance metrics, and resource monitoring.
+            </motion.p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={fetchHealth}
+              className="p-2 border border-hairline rounded-[var(--radius-md)] bg-surface text-mute hover:bg-surface-elevated hover:text-body transition-colors"
+              aria-label="Refresh health status"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+            {loading ? (
+              <div className="flex items-center gap-2 px-4 py-2 bg-surface border border-hairline rounded-[var(--radius-md)] text-caption-md text-mute">
+                <span className="h-2 w-2 rounded-full bg-mute animate-pulse" /> Checking...
+              </div>
+            ) : error ? (
+              <div className="flex items-center gap-2 px-4 py-2 bg-accent-red-soft border border-accent-red-soft rounded-[var(--radius-md)] text-caption-md text-accent-red font-medium">
+                <ShieldAlert className="w-4 h-4" /> Unreachable
+              </div>
+            ) : (
+              <div className={`flex items-center gap-2 px-4 py-2 border rounded-[var(--radius-md)] text-caption-md font-medium ${isHealthy ? 'bg-accent-green-soft border-accent-green-soft text-accent-green' : 'bg-accent-yellow-soft border-accent-yellow-soft text-accent-yellow'}`}>
+                <ShieldCheck className="w-4 h-4" /> {isHealthy ? 'System Healthy' : 'Degraded'}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white p-6 rounded-xl border border-[#dddddd] shadow-sm">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Clock className="h-4 w-4" /> Total Runtime
-          </div>
-          <div className="text-2xl font-bold">2.45s</div>
+        {/* KPI Row */}
+        <div className="grid grid-cols-1 mb-8">
+          <EnterpriseCard>
+            <div className="flex flex-col items-center justify-center p-12 text-center gap-2">
+              <Activity className="h-8 w-8 text-ash" />
+              <p className="text-body-sm text-mute">No execution metrics available from backend yet.</p>
+            </div>
+          </EnterpriseCard>
         </div>
-        <div className="bg-white p-6 rounded-xl border border-[#dddddd] shadow-sm">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Cpu className="h-4 w-4" /> Node Operations
-          </div>
-          <div className="text-2xl font-bold">14 steps</div>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-[#dddddd] shadow-sm">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Server className="h-4 w-4" /> Memory Peak
-          </div>
-          <div className="text-2xl font-bold">142 MB</div>
-        </div>
-        <div className="bg-white p-6 rounded-xl border border-[#dddddd] shadow-sm">
-          <div className="flex items-center gap-2 text-gray-500 mb-2">
-            <Network className="h-4 w-4" /> LLM Tokens
-          </div>
-          <div className="text-2xl font-bold">4,208</div>
-        </div>
-      </div>
 
-      <div className="bg-white rounded-xl border border-[#dddddd] shadow-sm p-6 mb-8">
-        <h2 className="text-lg font-bold mb-4">Execution Timeline</h2>
-        <div className="space-y-4">
-          <div className="relative pt-2">
-            <div className="flex justify-between text-sm mb-1 text-gray-500">
-              <span>Dataset Loaded</span>
-              <span>12ms</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full" style={{ width: "2%" }}></div>
-            </div>
-          </div>
-          <div className="relative pt-2">
-            <div className="flex justify-between text-sm mb-1 text-gray-500">
-              <span>Contract Detection</span>
-              <span>42ms</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-blue-500 h-2 rounded-full" style={{ width: "10%" }}></div>
-            </div>
-          </div>
-          <div className="relative pt-2">
-            <div className="flex justify-between text-sm mb-1 text-gray-500">
-              <span>Data Readiness Engine</span>
-              <span>280ms</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-purple-500 h-2 rounded-full" style={{ width: "40%" }}></div>
-            </div>
-          </div>
-          <div className="relative pt-2">
-            <div className="flex justify-between text-sm mb-1 text-gray-500">
-              <span>Statistical Engine</span>
-              <span>95ms</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-orange-500 h-2 rounded-full" style={{ width: "20%" }}></div>
-            </div>
-          </div>
-          <div className="relative pt-2">
-            <div className="flex justify-between text-sm mb-1 text-gray-500">
-              <span>AI Planner (LangGraph)</span>
-              <span>2,021ms</span>
-            </div>
-            <div className="w-full bg-gray-100 rounded-full h-2">
-              <div className="bg-[#ff385c] h-2 rounded-full" style={{ width: "100%" }}></div>
-            </div>
-          </div>
-        </div>
+        {/* Execution Timeline */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <EnterpriseCard className="mb-8">
+            <EnterpriseCardHeader>
+              <EnterpriseCardTitle>Execution Timeline</EnterpriseCardTitle>
+            </EnterpriseCardHeader>
+            <EnterpriseCardContent>
+              <div className="flex flex-col items-center justify-center p-12 text-center gap-2">
+                <Clock className="h-8 w-8 text-ash" />
+                <p className="text-body-sm text-mute">No timeline data available.</p>
+              </div>
+            </EnterpriseCardContent>
+          </EnterpriseCard>
+        </motion.div>
       </div>
     </div>
   )
