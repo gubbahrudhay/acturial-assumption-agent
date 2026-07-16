@@ -36,7 +36,20 @@ export const useStore = create<AgentState>((set) => ({
   explainabilityReport: null,
   isLoading: false,
 
-  setDataset: (dataset: string) => set({ dataset }),
+  setDataset: (dataset: string) => set({ 
+    dataset,
+    drift: null,
+    investigationTree: null,
+    businessImpact: null,
+    plannerNotebook: [],
+    eventReconstruction: '',
+    decisionOptions: [],
+    scenario: {},
+    copilotMessages: [],
+    report: '',
+    primaryRootCause: '',
+    explainabilityReport: null,
+  }),
   setLoading: (isLoading: boolean) => set({ isLoading }),
   
   setAgentData: (data: any) => set({

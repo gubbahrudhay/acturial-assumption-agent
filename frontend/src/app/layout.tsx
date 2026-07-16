@@ -1,11 +1,9 @@
 import "./globals.css"
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import Link from "next/link"
-import { Activity, LayoutDashboard, SearchCode, FileText } from "lucide-react"
-import DatasetSelector from "@/components/DatasetSelector"
-import ApiKeyInput from "@/components/ApiKeyInput"
-import UploadDatasetButton from "@/components/UploadDatasetButton"
+import { Inter } from 'next/font/google';
+import Sidebar from "@/components/Sidebar"
+import TopBar from "@/components/TopBar"
+
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' })
 
 export default function RootLayout({
   children,
@@ -13,42 +11,20 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={`bg-white text-[#222222] antialiased selection:bg-[#ff385c]/30 font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <div className="flex min-h-screen flex-col">
-          <header className="sticky top-0 z-50 w-full h-[80px] bg-white border-b border-[#dddddd] flex items-center">
-            <div className="container flex items-center justify-between px-6 md:px-10 mx-auto w-full">
-              <div className="flex items-center">
-                <Link href="/" className="flex items-center space-x-2 text-[#ff385c]">
-                  <Activity className="h-8 w-8" />
-                  <span className="hidden font-bold sm:inline-block text-xl tracking-tight">
-                    assumption
-                  </span>
-                </Link>
-              </div>
-              
-              {/* Center Product Tabs */}
-              <nav className="hidden md:flex items-center space-x-8 text-[16px] font-semibold text-[#6a6a6a]">
-                <Link href="/data-readiness" className="transition-colors hover:text-[#222222] flex items-center gap-2">
-                  Data Readiness
-                </Link>
-                <Link href="/investigation" className="transition-colors hover:text-[#222222] flex items-center gap-2">
-                  Investigation
-                </Link>
-                <Link href="/monitoring" className="transition-colors hover:text-[#222222] flex items-center gap-2">
-                  Monitoring
-                </Link>
-              </nav>
-
-              {/* Right Utilities */}
-              <div className="flex items-center gap-4">
-                 <UploadDatasetButton />
-                 <DatasetSelector />
-                 <ApiKeyInput />
-              </div>
-            </div>
-          </header>
-          <main className="flex-1 w-full max-w-[1280px] mx-auto">{children}</main>
+    <html lang="en" className="dark">
+      <body className={`bg-canvas text-body antialiased font-sans ${inter.variable} min-h-screen flex selection:bg-accent-blue-soft selection:text-accent-blue`}>
+        {/* Sidebar Navigation */}
+        <Sidebar />
+        
+        {/* Main Content Area */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Top Utilities Bar */}
+          <TopBar />
+          
+          {/* Page Content */}
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
         </div>
       </body>
     </html>

@@ -39,3 +39,10 @@ class InvestigationState(TypedDict):
     # Graph State
     investigation_status: str
     messages: List[Any]
+    
+    # Segment Surveillance Trigger Metadata
+    trigger_source: str
+    trigger_dimension: str
+    trigger_segment: str
+    trigger_reason: str
+    segment_metrics: Dict[str, Any]

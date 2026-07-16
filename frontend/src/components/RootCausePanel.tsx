@@ -1,8 +1,9 @@
 import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
-import { BrainCircuit, Activity, BarChart, ShieldCheck, GitMerge } from "lucide-react"
+import { BrainCircuit, ShieldCheck, GitMerge } from "lucide-react"
+import { useStore } from "@/store/store"
+import { EnterpriseCard, EnterpriseCardHeader, EnterpriseCardTitle, EnterpriseCardContent } from "@/components/ui/EnterpriseCard"
 
 interface RootCausePanelProps {
   primaryRootCause: string;
@@ -12,16 +13,37 @@ interface RootCausePanelProps {
 }
 
 export default function RootCausePanel({ primaryRootCause, explainabilityReport, businessImpact, tree }: RootCausePanelProps) {
+  const { decisionOptions } = useStore()
+  
   if (!explainabilityReport) return null;
 
   const score = explainabilityReport.overall_score || 0;
   const factors = explainabilityReport.factors || [];
   const explanation = explainabilityReport.explanation_text || "No AI explanation available.";
 
+  const isCombined = businessImpact?.observed_claim_cost !== undefined;
+  const isSeverity = businessImpact?.observed_severity !== undefined;
+
+  const statisticalPattern = isCombined 
+    ? (businessImpact.deterioration_pattern || "Mixed Deterioration")
+    : (isSeverity ? "Severity-Led Deterioration" : "Frequency-Led Deterioration");
+
+  const primarySegment = businessImpact?.most_impacted_portfolio || "Root Portfolio";
+  const hasCrossEngineAlignment = decisionOptions?.some(opt => opt.cross_engine_alignment) || false;
+
+  let statisticalConfidence = "N/A";
+  if (isCombined) statisticalConfidence = "Deterministic Actuarial Reconciliation";
+  else if (isSeverity) statisticalConfidence = "95% Bootstrap Confidence Interval";
+  else statisticalConfidence = "Benjamini-Hochberg FDR Control (q < 0.05)";
+
+  const businessImpactText = isCombined
+    ? `₹${businessImpact.excess_claim_cost?.toLocaleString(undefined, {maximumFractionDigits: 0})}`
+    : `₹${businessImpact.excess_cost?.toLocaleString(undefined, {maximumFractionDigits: 0}) || '0'}`;
+
   const getScoreColor = (s: number) => {
-    if (s >= 80) return "text-emerald-400 bg-emerald-400/10 border-emerald-400/20";
-    if (s >= 50) return "text-amber-400 bg-amber-400/10 border-amber-400/20";
-    return "text-red-400 bg-red-400/10 border-red-400/20";
+    if (s >= 80) return "text-accent-green bg-accent-green-soft";
+    if (s >= 50) return "text-accent-yellow bg-accent-yellow-soft";
+    return "text-accent-red bg-accent-red-soft";
   };
 
   return (
@@ -30,80 +52,95 @@ export default function RootCausePanel({ primaryRootCause, explainabilityReport,
       animate={{ opacity: 1, y: 0 }}
       className="mb-8"
     >
-      <div className="bg-[#1a1a1a] border border-[#333333] rounded-2xl overflow-hidden shadow-2xl relative">
+      <EnterpriseCard elevated>
         {/* Header */}
-        <div className="bg-gradient-to-r from-[#222222] to-[#1a1a1a] p-6 border-b border-[#333333] flex justify-between items-center">
+        <EnterpriseCardHeader className="flex-row items-center justify-between">
           <div>
-            <div className="flex items-center gap-2 mb-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-400" />
-              <h2 className="text-white text-lg font-bold">Root Cause Intelligence Center</h2>
-            </div>
-            <p className="text-[#aaaaaa] text-sm">Deterministic analysis and mathematical justification of the primary anomaly driver.</p>
+            <EnterpriseCardTitle className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-accent-green" />
+              Root Cause Intelligence Center
+            </EnterpriseCardTitle>
+            <p className="text-body-sm text-mute mt-1">Deterministic analysis and mathematical justification of the primary anomaly driver.</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] uppercase font-bold tracking-wider text-[#aaaaaa] mb-1">Explainability Score</p>
-            <div className={`inline-flex px-3 py-1 rounded-lg border font-mono font-bold text-xl ${getScoreColor(score)}`}>
+            <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-1">Explainability Score</p>
+            <div className={`inline-flex px-3 py-1 rounded-[var(--radius-md)] border border-hairline font-mono font-bold text-heading-md ${getScoreColor(score)}`}>
               {score}/100
             </div>
           </div>
-        </div>
+        </EnterpriseCardHeader>
 
         {/* Content */}
-        <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-          
-          {/* Main Root Cause Identity */}
-          <div className="md:col-span-1 flex flex-col gap-4">
-            <div className="bg-[#222222] p-4 rounded-xl border border-[#333333]">
-              <p className="text-[10px] uppercase font-bold text-[#aaaaaa] mb-2 flex items-center gap-1">
-                <GitMerge className="h-3 w-3" /> Primary Root Cause
-              </p>
-              <p className="text-white font-bold text-lg mb-2">{primaryRootCause}</p>
-              <Badge className="bg-[#ff385c]/10 text-[#ff385c] border-[#ff385c]/20 hover:bg-[#ff385c]/20 shadow-none uppercase text-[10px]">
-                High Drift Identified
-              </Badge>
-            </div>
+        <EnterpriseCardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#222222] p-4 rounded-xl border border-[#333333]">
-                <p className="text-[10px] uppercase font-bold text-[#aaaaaa] mb-1">Unexpected Claims</p>
-                <p className="text-white font-mono font-bold text-lg">+{businessImpact?.additional_claims?.toLocaleString() || 0}</p>
+            {/* Left column */}
+            <div className="flex flex-col gap-3">
+              <div className="bg-surface-elevated p-4 rounded-[var(--radius-lg)] border border-hairline">
+                <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-2 flex items-center gap-1">
+                  <GitMerge className="h-3 w-3" /> Statistical Pattern
+                </p>
+                <p className="text-body-sm-strong text-ink mb-2">{statisticalPattern}</p>
+                <Badge className="bg-accent-red-soft text-accent-red border-0 shadow-none uppercase text-[10px] tracking-wider">
+                  {isCombined ? "Combined Analysis" : (isSeverity ? "Severity Gate" : "Frequency Gate")}
+                </Badge>
               </div>
-              <div className="bg-[#222222] p-4 rounded-xl border border-[#333333]">
-                <p className="text-[10px] uppercase font-bold text-[#aaaaaa] mb-1">Total Exposure</p>
-                <p className="text-white font-mono font-bold text-lg">{businessImpact?.affected_policies_percentage !== undefined ? (businessImpact.affected_policies_percentage * 100).toFixed(1) + '%' : 'N/A'}</p>
+              
+              <div className="bg-surface-elevated p-4 rounded-[var(--radius-lg)] border border-hairline">
+                <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-1">Primary Segment</p>
+                <p className="text-body-sm-strong text-ink truncate" title={primarySegment}>{primarySegment}</p>
               </div>
-            </div>
-          </div>
 
-          {/* AI Interpretation */}
-          <div className="md:col-span-2 flex flex-col gap-4">
-            <div className="bg-[#222222] p-5 rounded-xl border border-[#333333] flex-1">
-              <p className="text-[10px] uppercase font-bold text-[#aaaaaa] mb-3 flex items-center gap-1">
-                <BrainCircuit className="h-3 w-3" /> Deterministic Explanation
-              </p>
-              <div className="text-[#dddddd] text-sm leading-relaxed space-y-2">
-                {explanation.split('. ').map((sentence: string, i: number) => (
-                  <p key={i}>{sentence}{sentence.endsWith('.') ? '' : '.'}</p>
-                ))}
-              </div>
-            </div>
-            
-            {/* Factor Breakdown */}
-            <div className="grid grid-cols-3 gap-4">
-              {factors.map((f: any, i: number) => (
-                <div key={i} className="bg-[#222222] p-3 rounded-xl border border-[#333333]">
-                  <div className="flex justify-between items-center mb-1">
-                    <p className="text-[10px] uppercase font-bold text-[#aaaaaa]">{f.name}</p>
-                    <div className={`h-2 w-2 rounded-full ${f.status === 'Strong' ? 'bg-emerald-400' : f.status === 'Moderate' ? 'bg-amber-400' : 'bg-red-400'}`} />
-                  </div>
-                  <p className="text-white text-xs mt-2 line-clamp-2" title={f.desc}>{f.desc}</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-surface-elevated p-4 rounded-[var(--radius-lg)] border border-hairline">
+                  <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-1">Business Impact</p>
+                  <p className="text-body-sm-strong text-ink font-mono tabular-nums">{businessImpactText}</p>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="bg-surface-elevated p-4 rounded-[var(--radius-lg)] border border-hairline">
+                  <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-1">Alignment</p>
+                  <p className={`text-caption-sm font-medium ${hasCrossEngineAlignment ? 'text-accent-green' : 'text-mute'}`}>
+                    {hasCrossEngineAlignment ? "Cross-Engine" : "Standalone"}
+                  </p>
+                </div>
+              </div>
 
-        </div>
-      </div>
+              <div className="bg-surface-elevated p-4 rounded-[var(--radius-lg)] border border-hairline">
+                <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-1">Statistical Confidence</p>
+                <p className="text-caption-md text-body font-medium">{statisticalConfidence}</p>
+              </div>
+            </div>
+
+            {/* Right column */}
+            <div className="md:col-span-2 flex flex-col gap-3">
+              <div className="bg-surface-elevated p-5 rounded-[var(--radius-lg)] border border-hairline flex-1">
+                <p className="text-caption-sm text-ash uppercase tracking-wider font-medium mb-3 flex items-center gap-1">
+                  <BrainCircuit className="h-3 w-3" /> Root Cause Hypothesis
+                </p>
+                <div className="text-body-sm text-body leading-relaxed space-y-2">
+                  {explanation.split('. ').map((sentence: string, i: number) => (
+                    <p key={i}>{sentence}{sentence.endsWith('.') ? '' : '.'}</p>
+                  ))}
+                </div>
+              </div>
+              
+              {factors.length > 0 && (
+                <div className="grid grid-cols-3 gap-3">
+                  {factors.map((f: any, i: number) => (
+                    <div key={i} className="bg-surface-elevated p-3 rounded-[var(--radius-lg)] border border-hairline">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-caption-sm text-ash uppercase tracking-wider font-medium truncate" title={f.name}>{f.name}</p>
+                        <span className={`h-2 w-2 rounded-full shrink-0 ${f.status === 'Strong' ? 'bg-accent-green' : f.status === 'Moderate' ? 'bg-accent-yellow' : 'bg-accent-red'}`} />
+                      </div>
+                      <p className="text-caption-sm text-body mt-2 line-clamp-2" title={f.desc}>{f.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+        </EnterpriseCardContent>
+      </EnterpriseCard>
     </motion.div>
   )
 }

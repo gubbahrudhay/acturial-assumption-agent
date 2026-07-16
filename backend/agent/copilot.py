@@ -1,6 +1,11 @@
 import json
 from typing import Dict, Any, List
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from logger import get_logger
+logger = get_logger()
 
 def chat_with_copilot(state: Dict[str, Any], user_message: str) -> Dict[str, Any]:
     """
@@ -75,5 +80,5 @@ def chat_with_copilot(state: Dict[str, Any], user_message: str) -> Dict[str, Any
         else:
             return {"reply": "LLM not connected. Cannot process query."}
     except Exception as e:
-        print(f"Error invoking LLM in copilot: {e}")
+        logger.error(f"Error invoking LLM in copilot: {e}")
         return {"error": f"Failed to get response: {str(e)}"}

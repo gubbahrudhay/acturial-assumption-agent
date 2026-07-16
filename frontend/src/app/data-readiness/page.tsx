@@ -1,26 +1,33 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { ShieldCheck, AlertCircle, Database, CheckCircle2, XCircle, Activity, BarChart3, AlertTriangle, Play } from "lucide-react"
+import { ShieldCheck, AlertCircle, Database, CheckCircle2, XCircle, Activity, AlertTriangle, Play, RefreshCw } from "lucide-react"
 import { useStore } from "@/store/store"
+import { API_BASE_URL } from "@/lib/api"
+import { EnterpriseCard, EnterpriseCardHeader, EnterpriseCardTitle, EnterpriseCardContent } from "@/components/ui/EnterpriseCard"
+import { motion } from "framer-motion"
 
 export default function DataReadinessPage() {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const { dataset } = useStore()
 
   const runReadinessCheck = async () => {
     if (!dataset) return;
     setLoading(true)
+    setError(null)
+    setData(null)
     try {
-      const detectRes = await fetch("http://localhost:8000/api/contracts/detect", {
+      const detectRes = await fetch(`${API_BASE_URL}/api/contracts/detect`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ dataset })
       })
+      if (!detectRes.ok) throw new Error(`Contract detection failed (${detectRes.status})`)
       const detectData = await detectRes.json()
 
-      const analyzeRes = await fetch("http://localhost:8000/api/data-readiness/analyze", {
+      const analyzeRes = await fetch(`${API_BASE_URL}/api/data-readiness/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ 
@@ -28,30 +35,22 @@ export default function DataReadinessPage() {
           engine_context: detectData.engine_context
         })
       })
+      if (!analyzeRes.ok) throw new Error(`Readiness analysis failed (${analyzeRes.status})`)
       const analyzeData = await analyzeRes.json()
 
       setData({ detect: detectData, analyze: analyzeData })
-    } catch (e) {
-      console.error(e)
+    } catch (e: any) {
+      setError(e.message || "Failed to run readiness check")
     } finally {
       setLoading(false)
     }
   }
 
-  // Run automatically on first mount if we have a dataset, but don't re-run automatically on change
   useEffect(() => {
-    if (dataset && !data && !loading) {
+    if (dataset) {
       runReadinessCheck()
     }
   }, [dataset])
-
-  if (loading && !data) {
-    return (
-      <div className="flex h-[calc(100vh-80px)] items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ff385c]"></div>
-      </div>
-    )
-  }
 
   const { detect, analyze } = data || {}
   const capabilityMatrix = detect?.compatibility?.capability_matrix || []
@@ -59,142 +58,208 @@ export default function DataReadinessPage() {
   const isReady = analyze?.dataset_ready
 
   return (
-    <div className="py-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-[#222222] flex items-center gap-2">
-            <ShieldCheck className="h-8 w-8 text-[#ff385c]" />
-            Enterprise Data Readiness
-          </h1>
-          <p className="text-[#6a6a6a] mt-2">
-            Dataset validation, contract detection, and engine compatibility matrix.
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={runReadinessCheck}
-            disabled={loading || !dataset}
-            className="flex items-center gap-2 bg-[#ff385c] hover:bg-[#d90b2e] text-white px-6 py-3 rounded-full font-bold transition-colors disabled:opacity-50"
-          >
-            {loading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-            ) : (
-              <Play className="h-5 w-5" />
-            )}
-            {loading ? "Analyzing..." : "Run Readiness Check"}
-          </button>
-          
-          {data && (
-            <div className={`px-6 py-3 rounded-full font-bold flex items-center gap-2 ${isReady ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-              {isReady ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
-              {isReady ? "Dataset Ready for Investigation" : "Critical Validation Errors"}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {data ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-white rounded-xl border border-[#dddddd] shadow-sm p-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Database className="h-5 w-5 text-[#6a6a6a]" />
-              Dataset Overview & Contract
-            </h2>
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Detected Contract</div>
-                <div className="font-bold text-lg">{detect?.contract_type || "Unknown"}</div>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Schema Version</div>
-                <div className="font-bold text-lg">{detect?.engine_context?.schema_version || "1"}</div>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Recommended Engine</div>
-                <div className="font-bold text-lg text-blue-600">{detect?.compatibility?.recommended_engine || "None"}</div>
-              </div>
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <div className="text-sm text-gray-500 mb-1">Overall Quality Score</div>
-                <div className="font-bold text-lg text-green-600">{analyze?.overall_score || 0} / 100</div>
-              </div>
-            </div>
+    <div className="flex flex-col min-h-screen p-6 md:p-8 lg:p-10">
+      <div className="w-full max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-10 gap-4">
+          <div>
+            <motion.h1
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-display-lg text-ink flex items-center gap-3"
+            >
+              <ShieldCheck className="h-8 w-8 text-accent-blue" />
+              Data Readiness
+            </motion.h1>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="text-body-lg text-mute mt-2"
+            >
+              Dataset validation, contract detection, and engine compatibility matrix.
+            </motion.p>
           </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button 
+              onClick={runReadinessCheck}
+              disabled={loading || !dataset}
+              className="flex items-center gap-2 bg-primary hover:bg-primary-pressed text-on-primary px-5 py-2.5 rounded-[var(--radius-md)] text-body-sm-strong transition-colors disabled:opacity-50"
+              aria-label="Run readiness check"
+            >
+              {loading ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+              {loading ? "Analyzing..." : "Run Readiness Check"}
+            </button>
+            
+            {data && (
+              <div className={`px-3 py-2 rounded-[var(--radius-md)] font-medium text-caption-md flex items-center gap-2 border ${isReady ? 'bg-accent-green-soft text-accent-green border-accent-green-soft' : 'bg-accent-red-soft text-accent-red border-accent-red-soft'}`}>
+                {isReady ? <CheckCircle2 className="h-4 w-4" /> : <XCircle className="h-4 w-4" />}
+                {isReady ? "Dataset Ready" : "Validation Errors"}
+              </div>
+            )}
+          </div>
+        </div>
 
-          <div className="bg-white rounded-xl border border-[#dddddd] shadow-sm p-6">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Activity className="h-5 w-5 text-[#6a6a6a]" />
-              Capability Matrix
-            </h2>
-            <div className="space-y-3">
-              {capabilityMatrix.map((cap: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-gray-100 bg-gray-50">
-                  <div className="font-medium">{cap.Investigation}</div>
-                  <div className="flex items-center gap-2 text-sm">
-                    {cap.Status === "Ready" ? (
-                      <span className="text-green-600 font-medium flex items-center gap-1"><CheckCircle2 className="h-4 w-4"/> Ready</span>
-                    ) : (
-                      <span className="text-gray-500 flex items-center gap-1"><XCircle className="h-4 w-4"/> {cap.Reason}</span>
-                    )}
+        {/* Loading State */}
+        {loading && !data && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2 skeleton h-[220px] rounded-[var(--radius-xl)]" />
+            <div className="skeleton h-[220px] rounded-[var(--radius-xl)]" />
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !data && (
+          <EnterpriseCard className="mb-8">
+            <div className="flex flex-col items-center justify-center p-12 text-center gap-3">
+              <AlertCircle className="h-8 w-8 text-accent-red" />
+              <p className="text-body-sm text-mute">{error}</p>
+              <button onClick={runReadinessCheck} className="text-accent-blue text-body-sm-strong hover:underline">
+                Retry
+              </button>
+            </div>
+          </EnterpriseCard>
+        )}
+
+        {/* Results */}
+        {data ? (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"
+            >
+              <EnterpriseCard className="lg:col-span-2">
+                <EnterpriseCardHeader>
+                  <EnterpriseCardTitle className="flex items-center gap-2">
+                    <Database className="h-5 w-5 text-accent-blue" />
+                    Dataset Overview & Contract
+                  </EnterpriseCardTitle>
+                </EnterpriseCardHeader>
+                <EnterpriseCardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-4 bg-surface-elevated rounded-[var(--radius-lg)] border border-hairline flex flex-col justify-center min-h-[90px]">
+                      <div className="text-caption-sm font-medium uppercase tracking-wider text-ash mb-1.5">Detected Contract</div>
+                      <div className="text-heading-sm text-ink">{detect?.contract_type || "Unknown"}</div>
+                    </div>
+                    <div className="p-4 bg-surface-elevated rounded-[var(--radius-lg)] border border-hairline flex flex-col justify-center min-h-[90px]">
+                      <div className="text-caption-sm font-medium uppercase tracking-wider text-ash mb-1.5">Schema Version</div>
+                      <div className="text-heading-sm text-ink tabular-nums">{detect?.engine_context?.schema_version || "1"}</div>
+                    </div>
+                    <div className="p-4 bg-surface-elevated rounded-[var(--radius-lg)] border border-hairline flex flex-col justify-center min-h-[90px]">
+                      <div className="text-caption-sm font-medium uppercase tracking-wider text-ash mb-1.5">Recommended Engine</div>
+                      <div className="text-heading-sm text-accent-blue">{detect?.compatibility?.recommended_engine || "None"}</div>
+                    </div>
+                    <div className="p-4 bg-surface-elevated rounded-[var(--radius-lg)] border border-hairline flex flex-col justify-center min-h-[90px]">
+                      <div className="text-caption-sm font-medium uppercase tracking-wider text-ash mb-1.5">Quality Score</div>
+                      <div className="text-heading-sm text-accent-green tabular-nums">{analyze?.overall_score || 0} / 100</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                </EnterpriseCardContent>
+              </EnterpriseCard>
+
+              <EnterpriseCard>
+                <EnterpriseCardHeader>
+                  <EnterpriseCardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-accent-blue" />
+                    Capability Matrix
+                  </EnterpriseCardTitle>
+                </EnterpriseCardHeader>
+                <EnterpriseCardContent>
+                  {capabilityMatrix.length > 0 ? (
+                    <div className="space-y-2">
+                      {capabilityMatrix.map((cap: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between p-3 rounded-[var(--radius-md)] border border-hairline bg-surface-elevated">
+                          <span className="font-medium text-body-sm text-ink">{cap.Investigation}</span>
+                          {cap.Status === "Ready" ? (
+                            <span className="text-accent-green text-caption-sm font-medium flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5"/> Ready</span>
+                          ) : (
+                            <span className="text-mute text-caption-sm flex items-center gap-1"><XCircle className="h-3.5 w-3.5"/> {cap.Reason}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-body-sm text-mute text-center p-4">No capability data available.</div>
+                  )}
+                </EnterpriseCardContent>
+              </EnterpriseCard>
+            </motion.div>
+
+            {/* Findings */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+            >
+              <EnterpriseCard>
+                <EnterpriseCardHeader>
+                  <EnterpriseCardTitle className="flex items-center gap-2 text-accent-red">
+                    <AlertCircle className="h-5 w-5" />
+                    Critical Errors
+                  </EnterpriseCardTitle>
+                </EnterpriseCardHeader>
+                <EnterpriseCardContent>
+                  {findings.critical.length > 0 ? (
+                    <ul className="space-y-2" role="list">
+                      {findings.critical.map((err: string, i: number) => (
+                        <li key={i} className="text-accent-red bg-accent-red-soft p-3 rounded-[var(--radius-md)] border border-accent-red-soft text-body-sm font-medium">{err}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-accent-green bg-accent-green-soft p-4 rounded-[var(--radius-md)] flex items-center gap-2 border border-accent-green-soft text-body-sm font-medium">
+                      <CheckCircle2 className="h-5 w-5 shrink-0" />
+                      No critical schema errors detected.
+                    </div>
+                  )}
+                </EnterpriseCardContent>
+              </EnterpriseCard>
+
+              <EnterpriseCard>
+                <EnterpriseCardHeader>
+                  <EnterpriseCardTitle className="flex items-center gap-2 text-accent-yellow">
+                    <AlertTriangle className="h-5 w-5" />
+                    Warnings & Missing Data
+                  </EnterpriseCardTitle>
+                </EnterpriseCardHeader>
+                <EnterpriseCardContent>
+                  {findings.warnings.length > 0 || findings.errors.length > 0 ? (
+                    <ul className="space-y-2" role="list">
+                      {findings.errors.map((err: string, i: number) => (
+                        <li key={`err-${i}`} className="text-accent-yellow bg-accent-yellow-soft p-3 rounded-[var(--radius-md)] border border-accent-yellow-soft text-body-sm font-medium">{err}</li>
+                      ))}
+                      {findings.warnings.map((warn: string, i: number) => (
+                        <li key={`warn-${i}`} className="text-accent-yellow bg-accent-yellow-soft p-3 rounded-[var(--radius-md)] border border-accent-yellow-soft text-body-sm font-medium">{warn}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="text-accent-green bg-accent-green-soft p-4 rounded-[var(--radius-md)] flex items-center gap-2 border border-accent-green-soft text-body-sm font-medium">
+                      <CheckCircle2 className="h-5 w-5 shrink-0" />
+                      No missing data or warnings detected.
+                    </div>
+                  )}
+                </EnterpriseCardContent>
+              </EnterpriseCard>
+            </motion.div>
+          </>
+        ) : !loading && !error && (
+          <EnterpriseCard className="mb-8">
+            <div className="flex flex-col items-center justify-center p-16 text-center">
+              <Database className="h-12 w-12 text-ash mb-4" />
+              <h2 className="text-heading-lg text-ink mb-2">No Readiness Data</h2>
+              <p className="text-body-sm text-mute max-w-md">
+                Click the "Run Readiness Check" button above to analyze the currently selected dataset and view its contract and compatibility matrix.
+              </p>
             </div>
-          </div>
-        </div>
-      ) : (
-        <div className="flex flex-col items-center justify-center p-16 bg-white border border-[#dddddd] rounded-xl shadow-sm mb-8 text-center">
-          <Database className="h-16 w-16 text-[#dddddd] mb-4" />
-          <h2 className="text-xl font-bold text-[#222222] mb-2">No Readiness Data</h2>
-          <p className="text-[#6a6a6a] max-w-md">
-            Click the "Run Readiness Check" button above to analyze the currently selected dataset and view its contract and compatibility matrix.
-          </p>
-        </div>
-      )}
-
-      {data && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-xl border border-red-200 shadow-sm p-6">
-            <h2 className="text-lg font-bold text-red-700 mb-4 flex items-center gap-2">
-              <AlertCircle className="h-5 w-5" />
-              Critical Errors
-            </h2>
-            {findings.critical.length > 0 ? (
-              <ul className="space-y-2">
-                {findings.critical.map((err: string, i: number) => (
-                  <li key={i} className="text-red-600 bg-red-50 p-3 rounded-lg border border-red-100">{err}</li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-gray-500 bg-gray-50 p-4 rounded-lg flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                No critical schema errors detected.
-              </div>
-            )}
-          </div>
-
-          <div className="bg-white rounded-xl border border-amber-200 shadow-sm p-6">
-            <h2 className="text-lg font-bold text-amber-700 mb-4 flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Warnings & Missing Data
-            </h2>
-            {findings.warnings.length > 0 || findings.errors.length > 0 ? (
-              <ul className="space-y-2">
-                {findings.errors.map((err: string, i: number) => (
-                  <li key={`err-${i}`} className="text-orange-600 bg-orange-50 p-3 rounded-lg border border-orange-100">{err}</li>
-                ))}
-                {findings.warnings.map((warn: string, i: number) => (
-                  <li key={`warn-${i}`} className="text-amber-600 bg-amber-50 p-3 rounded-lg border border-amber-100">{warn}</li>
-                ))}
-              </ul>
-            ) : (
-              <div className="text-gray-500 bg-gray-50 p-4 rounded-lg flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                No missing data or warnings detected.
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+          </EnterpriseCard>
+        )}
+      </div>
     </div>
   )
 }
